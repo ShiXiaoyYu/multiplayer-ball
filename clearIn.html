@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>clear</title>
+</head>
+<body>
+
+</body>
+<script>
+var i =0;
+var clearUp ;
+    document.addEventListener('keydown',doKeyDown,true);
+    function doKeyDown(e){
+        if(e.keyCode == 38){
+
+
+
+            var timerUp = setInterval(
+                    function(){
+                        if(clearUp == true){
+                            clearInterval(timerUp);
+                        }
+                        console.log(clearUp);
+                        console.log(i++);
+                    },100
+            );
+            console.log('up');
+        }else if(e.keyCode == 40){
+            clearUp = true;
+            clearInterval(timerUp);
+            console.log('down');
+        }
+
+    }
+
+    var timer = setInterval(
+            function(){
+                console.log('1');
+            },100
+    );
+clearInterval(timer);
+
+    var v = true;
+
+    cv();
+
+    console.log(v);
+function cv(){
+    v = false;
+}
+</script>
+</html>
