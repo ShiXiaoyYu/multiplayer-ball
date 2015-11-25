@@ -10,11 +10,23 @@
         border: 1px solid black;
     }
 
+article{
+    position:absolute;
+    top: 5%;
+    right: 2%;
+    border: 1px solid black;
+}
+
 </style>
 
 <canvas id='myCanvas' width="1500" height="1000" tabindex="1">
 </canvas>
 
+<article>
+    <section>
+        大球追到小球则获胜
+    </section>
+</article>
 
 </body>
 <script src="/socket.io/socket.io.js"></script>
@@ -34,8 +46,13 @@
     var clearDown = false;
     var clearRight = false;
     var clearLeft = false;
+    var timerUp;
+    var timerDown;
+    var timerLeft;
+    var timerRight;
 
     function dokeyDown(e) {
+
 
         if (e.keyCode == 38) {
            console.log(socket.id);
@@ -43,8 +60,9 @@
             clearDown = true;
             clearLeft = true;
             clearRight = true;
+
             clearInterval(timerUp);
-            var timerUp = setInterval(function(){
+            timerUp = setInterval(function(){
 
 
                 console.log('up'+'up');
@@ -55,6 +73,7 @@
                 socket.emit('move', {'socketId': socket.id, 'direction': 'up'});
             },10);
 
+
         }
       else  if (e.keyCode == 40) {
             clearDown = false;
@@ -62,7 +81,7 @@
              clearLeft = true;
             clearUp = true;
             clearInterval(timerDown);
-            var timerDown = setInterval(function(){
+            timerDown = setInterval(function(){
 
              //   console.log('down');
                 console.log('down'+'down');
@@ -81,7 +100,7 @@
             clearUp = true;
 
             clearInterval(timerLeft);
-            var timerLeft = setInterval(
+            timerLeft = setInterval(
                     function(){
 
                         console.log('left'+'left');
@@ -98,12 +117,12 @@
         }
       else  if (e.keyCode == 39) {
             clearRight = false;
-            clearLeft= true;//
+            clearLeft= true;
             clearDown = true;
             clearUp = true;
 
             clearInterval(timerRight);
-            var timerRight = setInterval(
+            timerRight = setInterval(
                     function(){
 
                     //    console.log('right');
@@ -134,57 +153,35 @@
             canvas_context.fillStyle = 'black';
             canvas_context.closePath();
             canvas_context.fill();
-
-          /*  socket.on('last',function(){
-               // alert('game over');
-            });*///?
             console.log(data[i].y);//400
 
-            if(data[i].x<=10||data[i].x>=1490||data[i].y>=920||data[i].y<=10){
-                clearDown = true;
-                clearLeft = true;
-                clearRight = true;
-                clearUp = true;
-                console.log(clearDown);
-                //   //  console.log(clearUp)
-               alert('over over');
+            if(data[i].x<=10||data[i].x>=1490||data[i].y>=990||data[i].y<=10){
+                clearInterval(timerUp);
+                clearInterval(timerDown);
+                clearInterval(timerLeft);
+                clearInterval(timerRight);
+               alert('game over'+'3秒后将会关闭该窗口');
+                var timerClose = setTimeout(function(){
+                    console.log('5sofff');
+                    window.close();
+                },2000);
 
             }
 
-
-
-
             if(data[i+1]){
 
-                if( Math.sqrt((data[i].x - data[i+1].x)*(data[i].x - data[i+1].x) + (data[i].y - data[i+1].y)*(data[i].y - data[i+1].y))<=45){
+                if( Math.sqrt((data[i].x - data[i+1].x)*(data[i].x - data[i+1].x) + (data[i].y - data[i+1].y)*(data[i].y - data[i+1].y))<=35){
+                    clearInterval(timerUp);
+                    clearInterval(timerDown);
+                    clearInterval(timerLeft);
+                    clearInterval(timerRight);
 
-                    clearDown = true;
-                    clearLeft = true;
-                    clearRight = true;
-                    clearUp = true;
-
-                    console.log(clearUp);
-                    console.log(clearDown);
-                    console.log(clearLeft);
-                    console.log(clearUp);
 
                     console.log('equality');
                     socket.emit('over');
 
                     alert('game over');
 
-                    /*socket.on('last',function(msg){
-                        clearDown = true;
-                        clearLeft = true;
-                        clearRight = true;
-                        clearUp = true;
-
-                        //  console.log('game over');
-
-                        // //  alert(msg);
-                        alert('game over');
-
-                    });*/
                     socket.emit('disconnect','dis');
 
                 }
@@ -196,108 +193,48 @@
 
 
     });
-
-/*
-    var dataR = canvas_context.getImageData(0, 0,canvas.width, canvas.height);
-    imageData = dataR.data;
-
-    function getStartIndex(x, y) {
-        return y * canvas.width * 4 + x * 4;
-    }
-
-    // 中点画圆法
-    function circle(x, y, r, color) {
-        var tx = 0, ty = r, d = 1 - r;
-
-        while(tx <= ty){
-            // 利用圆的八分对称性画点
-            putpixel(x + tx, y + ty, color);
-            putpixel(x + tx, y - ty, color);
-            putpixel(x - tx, y + ty, color);
-            putpixel(x - tx, y - ty, color);
-            putpixel(x + ty, y + tx, color);
-            putpixel(x + ty, y - tx, color);
-            putpixel(x - ty, y + tx, color);
-            putpixel(x - ty, y - tx, color);
-            if(d < 0){
-                d += 2 * tx + 3;
-            }else{
-                d += 2 * (tx - ty) + 5;
-                ty--;
-            }
-            tx++;
-        }
-    }
-
-    function putpixel(x, y, color){
-        var index = getStartIndex(x, y);
-        for(var i = 0; i< 4; i++) {
-            if(i == 3) {
-                imageData[index + i] = 255;
-            }
-            else{
-                // var co = parseInt(Math.random() * 255)
-                imageData[index + i] = color;
-            }
-        }
-    }
-
-
-    socket.on('move', function (data) {
-        console.log(data);
-        clearCanvas();
-        var radius = 25;
-        for (var i = 0; i < data.length; i++) {
-            if(i>0){
-                radius+=10;
-            }
-
-            circle(data[i].x, data[i].y, radius, 20);
-            canvas_context.putImageData(dataR, 0, 0);
-
-            socket.on('last',function(){
-                alert('game over');
-            });
-            if(data[i+1]){
-                if(data[i].x == data[i+1].x){
-                    console.log('equality');
-                    socket.emit('over');
-                    socket.on('last',function(msg){
-                        //  alert(msg);
-                        alert('game over');
-                    });
-
-                }
-            }
-
-
-        }
-
+    socket.on('offline',function(da){
+        console.log(da);
+        alert('您的好友已下线，3秒后将会关闭该窗口');
+        var timerClose = setTimeout(function(){
+            console.log('5sofff');
+            window.close();
+        },2000);
 
     });
+    socket.on('wait',function(){
+        alert('当前房间人数较多，请等待...'+',3秒后将会关闭该窗口');
+        var timerClose = setTimeout(function(){
+            console.log('5sofff');
+            window.close();
+        },2000);
+
+    })
+/*
+
+   socket.on('failure',function(msg){
+
+
+       console.log('titititititititititititiit');
+       clearInterval(timerUp);
+       clearInterval(timerDown);
+       clearInterval(timerLeft);
+       clearInterval(timerRight);
+
+       alert(msg+'已输'+'3秒后将会关闭该窗口');
+
+       console.log(msg);
+
+   });
 */
 
+
+;
 
 
 
     function emitFn(dir,timerDir,clearDir){
-/*
-        clearRight = false;
-        clearLeft= true;//
-        clearDown = true;
-        clearUp = true;
-        clearInterval(timerRight);
-        var timerRight = setInterval(
-                function(){
 
-                    //    console.log('right');
-
-                    if(clearRight == true){
-                        clearInterval(timerRight);
-                    }
-                    socket.emit('move', {'socketId': socket.id, 'direction': 'right'});
-                },10
-        );*/
 
 
         timerDir = setInterval(function(){

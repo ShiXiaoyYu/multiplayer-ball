@@ -8,177 +8,212 @@ app.set('port', process.env.PORT || 3000);
 var server = require('http').createServer(app);
 
 var players = [];
-var speed = 0.05;
+//var speed = 0.05;
+var speedXv = 0.5;
+var speedYv = 1.5;
 var small = false;//要写在外面
 var io = require('socket.io').listen(server);
 
 io.on('connection', function (socket) {
 
 
+    console.log('565666666666666666666666666666');
+if(players.length>=2){
+
+    socket.emit('wait');
+    return;
+}
+
     players.push({
         'id': socket.id,
-        'x': 100*(Math.floor(Math.random()*10+1)),
-        'y': 50*(Math.floor(Math.random()*10+1))
+        'x': parseInt(100*(Math.floor(Math.random()*10+1))),
+        'y': parseInt(50*(Math.floor(Math.random()*10+1)))
+
     });
 
-    var clearUp = false;
-    var clearDown = false;
-    var clearRight = false;
-    var clearLeft = false;
+
+    var timerDown;
     io.sockets.emit('move', players);
 
     socket.on('move', function (data) {
 
+           console.log(data);
+        console.log(players);
 
         if (data.direction == 'up') {
-            clearUp = false;
-            clearDown = true;
-            clearRight = true;
-            clearLeft = true;
-            clearInterval(timerUp);
-            getSmall(data.socketId);
-            if(small == true){
-                getPlayerById(data.socketId).y -= speed;
+
+
+
+            function judgement(id){
+                for(var i = 0; i<players.length;i++){
+                    if(i<1&&id == players[i].id){
+
+                        console.log('samll'+i);
+
+
+                        getPlayerById(data.socketId).y -= speedXv;
+                        if(getPlayerById(data.socketId).y <=10){
+                            io.sockets.emit('failure',data.socketId);
+                            return;
+                        }
+
+                    }else if(i>0&&id == players[i].id){
+                        console.log('897665133');
+                        var timerUp = setTimeout(function(){
+                                return (function (){
+                                    if(getPlayerById(data.socketId).y <=10){
+                                        clearTimeout(timerUp);
+                                        io.sockets.emit('failure',data.socketId);
+                                        clearTimeout(timerUp);
+                                        return;
+                                    }
+                                    getPlayerById(data.socketId).y -= speedYv;
+                                    clearTimeout(timerUp);
+                                })()
+                            },1000
+                        );
+                    }
+                }
+
             }
-            var timerUp = setInterval(function () {
 
-                if (clearUp == true) {
-                    clearInterval(timerUp);
-                }
-                getPlayerById(data.socketId).y -= speed;
-              console.log(getPlayerById(data.socketId).y);
+            judgement(data.socketId);
 
-                if(getPlayerById(data.socketId).y<=10){
-                    console.log('up'+'over');
-                 //   io.sockets.on('last','second');
-                    clearInterval(timerUp);
-                }
 
-            }, 100);
 
         } else if (data.direction == 'down') {
-            clearDown = false;
-            clearUp = true;
-            clearRight = true;
-            clearLeft = true;
-            clearInterval(timerDown);
-            if(small == true){
-                getPlayerById(data.socketId).y += speed;
+
+
+            function judgements(id){
+                for(var i = 0; i<players.length;i++){
+                    if(i<1&&id == players[i].id){
+
+                        if(getPlayerById(data.socketId).y >=990){
+                            io.sockets.emit('failure',data.socketId);
+                            return;
+                        }
+                        getPlayerById(data.socketId).y += speedXv;
+
+                    }else if(i>0&&id == players[i].id){
+                        var timerDown = setTimeout(function(){
+                                return (function (){
+                                    if(getPlayerById(data.socketId).y >=990){
+                                        clearTimeout(timerDown);
+                                        io.sockets.emit('failure',data.socketId);
+                                        clearTimeout(timerDown);
+                                        return;
+                                    }
+                                    getPlayerById(data.socketId).y += speedYv;
+                                    clearTimeout(timerDown);
+                                })()
+                            },1000
+                        );
+                    }
+                }
+
             }
-            var timerDown = setInterval(function () {
-              //  console.log('down');
 
-                if (clearDown == true) {
-                    clearInterval(timerDown);
-                }
-                getPlayerById(data.socketId).y += speed;
-
-                if( getPlayerById(data.socketId).y>=990){
-                    console.log('down'+'over');
-                    io.sockets.emit('last');
-                    clearInterval(timerDown);
-                }
-
-            }, 100);
-
+            judgements(data.socketId);
 
         } else if (data.direction == 'left') {
 
-            clearLeft = false;
-            clearUp = true;
-            clearDown = true;
-            clearRight = true;
-            clearInterval(timerLeft);
 
-            getSmall(data.socketId);
-            if(small == true){
-                getPlayerById(data.socketId).x -= speed;
-                io.sockets.emit('last');
+            function judgementss(id){
+                for(var i = 0; i<players.length;i++){
+                    if(i<1&&id == players[i].id){
+
+                        if(getPlayerById(data.socketId).x <=10){
+                            io.sockets.emit('failure',data.socketId);
+                            return;
+                        }
+
+                        getPlayerById(data.socketId).x -= speedXv;
+
+
+                    }else if(i>0&&id == players[i].id){
+                        var timerLeft = setTimeout(function(){
+                                return (function (){
+                                    if(getPlayerById(data.socketId).x <=10){
+                                        clearTimeout(timerLeft);
+                                        io.sockets.emit('failure',data.socketId);
+                                        return;
+                                    }
+                                    getPlayerById(data.socketId).x -= speedYv;
+                                    small = false;
+                                    clearTimeout(timerLeft);
+                                })()
+                            },1000
+                        );
+                    }
+                }
+
             }
-            var timerLeft = setInterval(function () {
-                if (clearLeft == true) {
-                    clearInterval(timerLeft);
-                }
-                getPlayerById(data.socketId).x -= speed;
-                console.log(getPlayerById(data.socketId).x);
-                if(getPlayerById(data.socketId).x<=10){
-                    console.log('left'+'over');
+            judgementss(data.socketId);
 
-                    io.sockets.emit('last');
-                    clearInterval(timerLeft);
-                  //  io.sockets.on('disconnect');
-                }
-
-            }, 100);
 
 
         } else if (data.direction == 'right') {
-            clearRight = false;
-            clearUp = true;
-            clearDown = true;
-            clearLeft = true;
-            getSmall(data.socketId);
-            if(small == true){
-                getPlayerById(data.socketId).x += speed;
+
+
+            function judgementD(id){
+                for(var i = 0; i<players.length;i++){
+                    if(i<1&&id == players[i].id){
+                        if(getPlayerById(data.socketId).x >=1490){
+                            io.sockets.emit('failure',data.socketId);
+                            return;
+                        }
+                        getPlayerById(data.socketId).x += speedXv;
+
+                    }else if(i>0&&id == players[i].id){
+                        console.log('max'+i);
+
+                        var timerRight = setTimeout(function(){
+                                return (function (){
+                                    if(getPlayerById(data.socketId).x >=1490){
+                                        io.sockets.emit('failure',data.socketId);
+                                        clearTimeout(timerRight);
+                                        return;
+                                    }
+                                    getPlayerById(data.socketId).x += speedYv;
+                                    clearTimeout(timerRight);
+                                })()
+                            },1000)
+                    }
+                    }
+                }
+            judgementD(data.socketId);
 
             }
-            clearInterval(timerRight);
-            var timerRight = setInterval(function () {
-             //   console.log('right');
-                if (clearRight == true) {
-                    clearInterval(timerRight);
-                }
-                getPlayerById(data.socketId).x += speed;
 
-                if(getPlayerById(data.socketId).x>=1490){
-                    console.log('right'+'over');
-                   // io.sockets.emit('lastT','second'); // 前端并没有触发go  cai:一个事件推送 只能定义一次 触发就随意了; 而且定义在全局权限最高(并不是)
-                    clearInterval(timerRight);
-
-                    clearUp = true;
-                    clearDown = true;
-                    clearRight = true;
-                    clearLeft = true;
-
-                    io.sockets.emit('last');
-                //    io.sockets.on('disconnect');
-
-
-                }
-
-            }, 100);
-        }
-
-    //    console.log('go');
         io.sockets.emit('move', players);
         io.sockets.emit('disconnect');
     });
 
+ console.log(socket.id);
 
-    socket.on('over', function () {
-        clearUp = true;
-        clearDown = true;
-        clearRight = true;
-        clearLeft = true;
-        console.log('game over');
-        io.sockets.emit('last');
-   //     io.sockets.on('disconnect');
+    socket.on('disconnect',function(){
+
+        players.splice(0,2);
+        io.sockets.emit('offline','off');
 
     });
-   // socket.on('disconnect',function(){
-       // console.log('dis')
-    //})
+
 
 });
+
+
+
+
 
 
 function getSmall(id) {
     for (var i = 0; i < players.length; i++) {
         if (i < 1) {
-            speed = 0.05;
+           // speed = 0.05;
+            speed = 0.5;
             small = true;
         } else {
-            speed = 0.25;
+            speed = 1.5;
             small = false;
         }
 
@@ -187,16 +222,12 @@ function getSmall(id) {
 /**/
 function getPlayerById(id) {
     for (var i = 0; i < players.length; i++) {
-        if (i < 1) {
-            speed = 0.05;
-        } else {
-            speed = 0.5;
-        }
         if (id == players[i].id) {
             return players[i]
         }
     }
 }
+
 
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
